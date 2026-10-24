@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light" style="color-scheme: light;"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bitácora de turnos</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EFF1EC;
+    --surface: #FFFFFF;
+    --surface-2: #F7F8F5;
+    --ink: #22242B;
+    --ink-soft: #6B7280;
+    --border: #DCDFD7;
+    --manana: #E39A3A;
+    --manana-soft: #FBEBD3;
+    --tarde: #3E7FA3;
+    --tarde-soft: #DBEAF2;
+    --noche: #4A3F73;
+    --noche-soft: #E4E0F0;
+    --custom: #4C8C6B;
+    --custom-soft: #DCEBE1;
+    --franco: #4C7A55;
+    --franco-soft: #DCEBDC;
+    --adicional: #A8801E;
+    --adicional-soft: #F2E8C4;
+    --terapia: #2F8F9D;
+    --terapia-soft: #D6EBEE;
+    --tardemateo: #7A5AA6;
+    --tardemateo-soft: #E6DDF2;
+    --trabajo: #A8546B;
+    --trabajo-soft: #F1DCE3;
+    --focus: #3E7FA3;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171A;
+      --surface: #1D2023;
+      --surface-2: #22262A;
+      --ink: #ECEEE9;
+      --ink-soft: #9AA0A0;
+      --border: #33373B;
+      --manana-soft: #4A3A1D;
+      --tarde-soft: #1C3140;
+      --noche-soft: #2A2440;
+      --custom-soft: #1E3428;
+      --franco-soft: #203324;
+      --adicional-soft: #3A3218;
+      --terapia-soft: #17343A;
+      --tardemateo-soft: #2C2340;
+      --trabajo-soft: #34212A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171A;
+    --surface: #1D2023;
+    --surface-2: #22262A;
+    --ink: #ECEEE9;
+    --ink-soft: #9AA0A0;
+    --border: #33373B;
+    --manana-soft: #4A3A1D;
+    --tarde-soft: #1C3140;
+    --noche-soft: #2A2440;
+    --custom-soft: #1E3428;
+    --franco-soft: #203324;
+    --adicional-soft: #3A3218;
+    --terapia-soft: #17343A;
+    --tardemateo-soft: #2C2340;
+    --trabajo-soft: #34212A;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 22px 16px 44px; }
+
+  header.top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+  .brand { font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .today-btn {
+    font-family: inherit; font-size: 15px; color: var(--tarde); background: none; border: none;
+    padding: 4px 0; cursor: pointer;
+  }
+
+  .month-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .month-nav h1 {
+    font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 34px;
+    margin: 0; text-transform: capitalize;
+  }
+  .nav-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink); font-size: 19px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-btn:active { background: var(--surface-2); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; font-size: 14px; color: var(--ink-soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .dot.m { background: var(--manana); }
+  .dot.t { background: var(--tarde); }
+  .dot.n { background: var(--noche); }
+  .dot.c { background: var(--custom); }
+  .sq { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .sq.trabajo { background: var(--trabajo-soft); border: 1.5px solid var(--trabajo); }
+  .sq.adicional { background: var(--adicional-soft); border: 1.5px solid var(--adicional); }
+  .sq.terapia { background: var(--terapia-soft); border: 1.5px solid var(--terapia); }
+  .sq.tardemateo { background: var(--tardemateo-soft); border: 1.5px solid var(--tardemateo); }
+  .sq.franco { background: var(--franco-soft); border: 1.5px solid var(--franco); }
+
+  .weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 8px;
+  }
+  .weekdays div {
+    text-align: center; font-size: 13px; color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 7px;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 4px 2px;
+    cursor: pointer;
+    position: relative;
+  }
+  .cell.pad { visibility: hidden; pointer-events: none; }
+  .cell.today { border-color: var(--tarde); border-width: 2px; }
+  .cell.selected { outline: 2.5px solid var(--focus); outline-offset: 1px; }
+  .cell .num { font-size: 18px; font-weight: 600; }
+  .cell .marks { display: flex; gap: 3px; margin-top: 4px; height: 6px; }
+  .cell .marks i { width: 6px; height: 6px; border-radius: 50%; }
+  .cell .marks i.m { background: var(--manana); }
+  .cell .marks i.t { background: var(--tarde); }
+  .cell .marks i.n { background: var(--noche); }
+  .cell .marks i.c { background: var(--custom); }
+  .cell .hrs { font-size: 10.5px; color: var(--ink-soft); margin-top: 2px; line-height: 1; }
+  .cell .badge {
+    position: absolute; top: 3px; right: 4px;
+    font-size: 13px; font-weight: 700; font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1;
+  }
+  .cell .badge span.trabajo { color: var(--trabajo); }
+  .cell .badge span.franco { color: var(--franco); }
+  .cell .badge span.adicional { color: var(--adicional); }
+  .cell .badge span.terapia { color: var(--terapia); }
+  .cell .badge span.tardemateo { color: var(--tardemateo); }
+  .cell .edit-icon {
+    position: absolute; bottom: 3px; right: 4px;
+    font-size: 9.5px; color: var(--ink-soft); opacity: 0.6; line-height: 1;
+  }
+
+  .summary {
+    margin-top: 18px; font-size: 14px; color: var(--ink-soft);
+    text-align: center; line-height: 1.6;
+  }
+
+  .panel {
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: none;
+  }
+  .panel.open { display: block; }
+  .panel h2 {
+    font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 18px;
+    margin: 0 0 12px; text-transform: capitalize;
+  }
+  .shift-row { display: flex; gap: 8px; margin-bottom: 4px; }
+  .shift-btn {
+    flex: 1; padding: 10px 4px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink); font-family: inherit; font-size: 13px;
+    cursor: pointer; text-align: center;
+  }
+  .shift-btn[data-active="true"][data-shift="m"] { background: var(--manana-soft); border-color: var(--manana); color: var(--ink); }
+  .shift-btn[data-active="true"][data-shift="t"] { background: var(--tarde-soft); border-color: var(--tarde); color: var(--ink); }
+  .shift-btn[data-active="true"][data-shift="n"] { background: var(--noche-soft); border-color: var(--noche); color: var(--ink); }
+
+  .status-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .status-btn {
+    flex: 1 1 30%; padding: 10px 4px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink); font-family: inherit; font-size: 13px;
+    cursor: pointer; text-align: center;
+  }
+  .status-btn[data-active="true"][data-status="trabajo"] { background: var(--trabajo-soft); border-color: var(--trabajo); }
+  .status-btn[data-active="true"][data-status="adicional"] { background: var(--adicional-soft); border-color: var(--adicional); }
+  .status-btn[data-active="true"][data-status="terapia"] { background: var(--terapia-soft); border-color: var(--terapia); }
+  .status-btn[data-active="true"][data-status="tardemateo"] { background: var(--tardemateo-soft); border-color: var(--tardemateo); }
+  .status-btn[data-active="true"][data-status="franco"] { background: var(--franco-soft); border-color: var(--franco); }
+
+  .blocks { margin: 10px 0 4px; display: flex; flex-direction: column; gap: 8px; }
+  .block-row {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 9px; padding: 7px 8px;
+  }
+  .block-row .swatch { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .block-row .swatch.m { background: var(--manana); }
+  .block-row .swatch.t { background: var(--tarde); }
+  .block-row .swatch.n { background: var(--noche); }
+  .block-row .swatch.c { background: var(--custom); }
+  .block-row .block-label {
+    font-size: 12.5px; flex: 1 1 auto; min-width: 0;
+    border: none; background: transparent; color: var(--ink); font-family: inherit;
+    padding: 2px 0;
+  }
+  .block-row .block-label:disabled { color: var(--ink); }
+  .time-pick { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+  .time-pick select {
+    font-family: inherit; font-size: 12.5px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--card); color: var(--ink); padding: 4px 2px; width: 40px; text-align: center;
+  }
+  .time-pick span { color: var(--ink-soft); font-size: 11px; }
+  .block-row input[type="time"] {
+    font-family: inherit; font-size: 12.5px; border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 4px; background: var(--surface); color: var(--ink);
+    width: 78px;
+  }
+  .block-row .sep { color: var(--ink-soft); font-size: 11px; }
+  .block-row .rm-btn {
+    border: none; background: none; color: var(--ink-soft); font-size: 15px;
+    cursor: pointer; padding: 0 2px; line-height: 1;
+  }
+
+  .add-custom-btn {
+    width: 100%; margin-top: 2px; padding: 9px; border-radius: 9px;
+    border: 1px dashed var(--border); background: none; color: var(--ink-soft);
+    font-family: inherit; font-size: 12.5px; cursor: pointer;
+  }
+
+  .note-field {
+    width: 100%; min-height: 50px; resize: vertical; margin-top: 12px;
+    border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px;
+    font-family: inherit; font-size: 13.5px; background: var(--surface-2); color: var(--ink);
+  }
+  .note-field:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .panel-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .close-btn { font-family: inherit; font-size: 13px; color: var(--ink-soft); background: none; border: none; cursor: pointer; }
+  .status { font-size: 12px; color: var(--ink-soft); min-height: 16px; }
+  .status.saved { color: var(--tarde); }
+
+  .backup-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 9px; padding: 9px 11px; font-size: 13.5px;
+  }
+  .backup-item button {
+    font-family: inherit; font-size: 12.5px; border: 1px solid var(--border);
+    border-radius: 7px; background: var(--surface); color: var(--tarde);
+    padding: 6px 11px; cursor: pointer;
+  }
+  .backup-hint { font-size: 12px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">Bitácora de turnos</div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <button class="today-btn" id="exportBtn">exportar</button>
+      <button class="today-btn" id="importBtn">importar</button>
+      <button class="today-btn" id="backupsBtn">respaldos</button>
+      <button class="today-btn" id="todayBtn">hoy</button>
+    </div>
+  </header>
+  <input type="file" id="importFile" accept="application/json" style="display:none;">
+  <div class="status" id="ioStatus" style="text-align:right; margin-bottom:8px;"></div>
+
+  <div class="panel" id="backupsPanel">
+    <h2>Respaldos automáticos</h2>
+    <p class="backup-hint">Cada vez que guardás un cambio, la app guarda una copia extra acá mismo en el celular, por las dudas. Podés restaurar cualquiera de estos momentos.</p>
+    <div id="backupsList" style="display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto;"></div>
+    <div class="panel-foot">
+      <button class="close-btn" id="closeBackupsBtn">cerrar</button>
+      <div class="status" id="backupsStatus"></div>
+    </div>
+  </div>
+
+  <div class="month-nav">
+    <button class="nav-btn" id="prevBtn" aria-label="Mes anterior">‹</button>
+    <h1 id="monthLabel">septiembre 2026</h1>
+    <button class="nav-btn" id="nextBtn" aria-label="Mes siguiente">›</button>
+  </div>
+
+  <div class="legend">
+    <span><i class="sq trabajo"></i>Trabajo</span>
+    <span><i class="sq franco"></i>Franco</span>
+    <span><i class="sq adicional"></i>Adicional</span>
+    <span><i class="sq terapia"></i>Terapia con Mateo</span>
+    <span><i class="sq tardemateo"></i>Tarde con Mateo</span>
+    <span><i class="dot m"></i>Mañana</span>
+    <span><i class="dot t"></i>Tarde</span>
+    <span><i class="dot n"></i>Noche</span>
+    <span><i class="dot c"></i>Personalizado</span>
+  </div>
+
+  <div class="weekdays">
+    <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
+  </div>
+
+  <div class="grid" id="grid"><div class="cell pad"></div><div class="cell selected" data-key="2026-09-01"><div class="num">1</div><div class="marks"><i class="c"></i></div><div class="hrs">8h</div></div><div class="cell" data-key="2026-09-02"><div class="num">2</div><div class="marks"></div></div><div class="cell" data-key="2026-09-03"><div class="num">3</div><div class="marks"></div></div><div class="cell" data-key="2026-09-04"><div class="num">4</div><div class="marks"></div></div><div class="cell" data-key="2026-09-05"><div class="num">5</div><div class="marks"></div></div><div class="cell" data-key="2026-09-06"><div class="num">6</div><div class="marks"></div></div><div class="cell" data-key="2026-09-07"><div class="num">7</div><div class="marks"></div></div><div class="cell" data-key="2026-09-08"><div class="num">8</div><div class="marks"></div></div><div class="cell" data-key="2026-09-09"><div class="num">9</div><div class="marks"></div></div><div class="cell" data-key="2026-09-10"><div class="num">10</div><div class="marks"></div></div><div class="cell" data-key="2026-09-11"><div class="num">11</div><div class="marks"></div></div><div class="cell" data-key="2026-09-12"><div class="num">12</div><div class="marks"></div></div><div class="cell" data-key="2026-09-13"><div class="num">13</div><div class="marks"></div></div><div class="cell" data-key="2026-09-14"><div class="num">14</div><div class="marks"></div></div><div class="cell" data-key="2026-09-15"><div class="num">15</div><div class="marks"></div></div><div class="cell" data-key="2026-09-16"><div class="num">16</div><div class="marks"></div></div><div class="cell" data-key="2026-09-17"><div class="num">17</div><div class="marks"></div></div><div class="cell" data-key="2026-09-18"><div class="num">18</div><div class="marks"></div></div><div class="cell" data-key="2026-09-19"><div class="num">19</div><div class="marks"></div></div><div class="cell" data-key="2026-09-20"><div class="num">20</div><div class="marks"></div></div><div class="cell" data-key="2026-09-21"><div class="num">21</div><div class="marks"></div></div><div class="cell today" data-key="2026-09-22"><div class="num">22</div><div class="marks"></div></div><div class="cell" data-key="2026-09-23"><div class="num">23</div><div class="marks"></div></div><div class="cell" data-key="2026-09-24"><div class="num">24</div><div class="marks"></div></div><div class="cell" data-key="2026-09-25"><div class="num">25</div><div class="marks"></div></div><div class="cell" data-key="2026-09-26"><div class="num">26</div><div class="marks"></div></div><div class="cell" data-key="2026-09-27"><div class="num">27</div><div class="marks"></div></div><div class="cell" data-key="2026-09-28"><div class="num">28</div><div class="marks"></div></div><div class="cell" data-key="2026-09-29"><div class="num">29</div><div class="marks"></div></div><div class="cell" data-key="2026-09-30"><div class="num">30</div><div class="marks"></div></div></div>
+
+  <div class="summary" id="summary">Este mes: 0 mañana · 0 tarde · 0 noche · 1 personalizados<br>Total trabajado: 8 h</div>
+
+  <div class="panel" id="panel">
+    <h2 id="panelDate"></h2>
+    <div class="status-row" id="statusRow">
+      <button class="status-btn" data-status="trabajo">Trabajo</button>
+      <button class="status-btn" data-status="franco">Franco</button>
+      <button class="status-btn" data-status="adicional">Adicional</button>
+      <button class="status-btn" data-status="terapia">Terapia con Mateo</button>
+      <button class="status-btn" data-status="tardemateo">Tarde con Mateo</button>
+    </div>
+    <div class="shift-row" id="shiftRow">
+      <button class="shift-btn" data-shift="m" data-active="false">Mañana</button>
+      <button class="shift-btn" data-shift="t" data-active="false">Tarde</button>
+      <button class="shift-btn" data-shift="n" data-active="false">Noche</button>
+    </div>
+    <div class="blocks" id="blocksList"></div>
+    <button class="add-custom-btn" id="addCustomBtn">+ turno personalizado</button>
+    <textarea class="note-field" id="noteField" placeholder="Nota (opcional) — ej. cambio con Fede"></textarea>
+    <div class="panel-foot">
+      <span class="status" id="statusText"></span>
+      <button class="close-btn" id="closeBtn">Cerrar</button>
+    </div>
+  </div>
+
+</div>
+
+<script id="app-state" type="application/json">{"days":{}}</script>
+<script>
+(function () {
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var DIAS_LARGOS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var PRESET_LABEL = { m: 'Mañana', t: 'Tarde', n: 'Noche' };
+  var PRESET_DEFAULT_TIME = { m: ['08:00', '14:00'], t: ['14:00', '20:00'], n: ['20:00', '02:00'] };
+
+  var STORAGE_KEY = 'bitacora-turnos-state';
+  var stateEl = document.getElementById('app-state');
+  var state = { days: {} };
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      state = JSON.parse(saved);
+    } else {
+      state = JSON.parse(stateEl.textContent || '{"days":{}}');
+    }
+  } catch (e) {
+    try { state = JSON.parse(stateEl.textContent || '{"days":{}}'); } catch (e2) {}
+  }
+  if (!state.days) state.days = {};
+
+  var now = new Date();
+  var viewYear = now.getFullYear();
+  var viewMonth = now.getMonth(); // 0-indexed
+  var selectedKey = null;
+
+  var grid = document.getElementById('grid');
+  var monthLabel = document.getElementById('monthLabel');
+  var summaryEl = document.getElementById('summary');
+  var panel = document.getElementById('panel');
+  var panelDate = document.getElementById('panelDate');
+  var statusRow = document.getElementById('statusRow');
+  var shiftRow = document.getElementById('shiftRow');
+  var addCustomBtn = document.getElementById('addCustomBtn');
+  var blocksList = document.getElementById('blocksList');
+  var noteField = document.getElementById('noteField');
+  var statusText = document.getElementById('statusText');
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function keyFor(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+
+  function buildTimePick(initialValue, onChange) {
+    var parts = (initialValue || '').split(':');
+    var h = parts[0] || '';
+    var m = parts[1] || '';
+    var wrap = document.createElement('div');
+    wrap.className = 'time-pick';
+    var hourSel = document.createElement('select');
+    hourSel.setAttribute('aria-label', 'Hora');
+    var optH0 = document.createElement('option');
+    optH0.value = ''; optH0.textContent = 'HH';
+    hourSel.appendChild(optH0);
+    for (var i = 0; i < 24; i++) {
+      var hv = pad(i);
+      var opt = document.createElement('option');
+      opt.value = hv; opt.textContent = hv;
+      if (hv === h) opt.selected = true;
+      hourSel.appendChild(opt);
+    }
+    var minSel = document.createElement('select');
+    minSel.setAttribute('aria-label', 'Minuto');
+    var optM0 = document.createElement('option');
+    optM0.value = ''; optM0.textContent = 'MM';
+    minSel.appendChild(optM0);
+    for (var j = 0; j < 60; j++) {
+      var mv = pad(j);
+      var opt2 = document.createElement('option');
+      opt2.value = mv; opt2.textContent = mv;
+      if (mv === m) opt2.selected = true;
+      minSel.appendChild(opt2);
+    }
+    function fire() { onChange(hourSel.value && minSel.value ? hourSel.value + ':' + minSel.value : ''); }
+    hourSel.addEventListener('change', fire);
+    minSel.addEventListener('change', fire);
+    wrap.appendChild(hourSel);
+    var sep = document.createElement('span');
+    sep.textContent = ':';
+    wrap.appendChild(sep);
+    wrap.appendChild(minSel);
+    return wrap;
+  }
+
+  // --- migrate legacy format: shifts: ['m','t'] -> blocks: [{type:'m',start,end}] ---
+  function dayData(key) {
+    var d = state.days[key];
+    if (!d) return { blocks: [], note: '', statuses: [] };
+    if (!d.blocks) {
+      var blocks = (d.shifts || []).map(function (s) {
+        var def = PRESET_DEFAULT_TIME[s] || ['09:00', '17:00'];
+        return { type: s, start: def[0], end: def[1] };
+      });
+      d = { blocks: blocks, note: d.note || '' };
+    }
+    if (!Array.isArray(d.statuses)) d.statuses = d.status ? [d.status] : [];
+    delete d.status;
+    return d;
+  }
+
+  function minutesOf(t) {
+    var parts = t.split(':').map(Number);
+    return parts[0] * 60 + parts[1];
+  }
+  function blockDurationHrs(b) {
+    if (!b.start || !b.end) return 0;
+    var start = minutesOf(b.start), end = minutesOf(b.end);
+    var diff = end - start;
+    if (diff <= 0) diff += 24 * 60;
+    return diff / 60;
+  }
+  function fmtHrs(h) {
+    if (h === 0) return '';
+    var rounded = Math.round(h * 10) / 10;
+    return (rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1)).replace('.', ',') + 'h';
+  }
+
+  function render() {
+    monthLabel.textContent = MESES[viewMonth] + ' ' + viewYear;
+    grid.innerHTML = '';
+
+    var firstOfMonth = new Date(viewYear, viewMonth, 1);
+    var startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
+    var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    for (var i = 0; i < startOffset; i++) {
+      var pad1 = document.createElement('div');
+      pad1.className = 'cell pad';
+      grid.appendChild(pad1);
+    }
+
+    var todayKey = keyFor(now.getFullYear(), now.getMonth(), now.getDate());
+    var typeCounts = { m: 0, t: 0, n: 0, c: 0 };
+    var statusCounts = { trabajo: 0, franco: 0, adicional: 0, terapia: 0, tardemateo: 0 };
+    var monthHrs = 0;
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var key = keyFor(viewYear, viewMonth, d);
+      var data = dayData(key);
+      var dayHrs = 0;
+
+      data.statuses.forEach(function (st) { if (statusCounts[st] !== undefined) statusCounts[st]++; });
+
+      data.blocks.forEach(function (b) {
+        var cls = (b.type === 'm' || b.type === 't' || b.type === 'n') ? b.type : 'c';
+        typeCounts[cls]++;
+        var hrs = blockDurationHrs(b);
+        dayHrs += hrs;
+        monthHrs += hrs;
+      });
+
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      if (data.statuses.length === 1) {
+        cell.style.background = 'var(--' + data.statuses[0] + '-soft)';
+      } else if (data.statuses.length > 1) {
+        var step = 100 / data.statuses.length;
+        var stops = data.statuses.map(function (st, i) {
+          return 'var(--' + st + '-soft) ' + (i * step) + '% ' + ((i + 1) * step) + '%';
+        });
+        cell.style.background = 'linear-gradient(135deg, ' + stops.join(', ') + ')';
+      }
+      if (key === todayKey) cell.classList.add('today');
+      if (key === selectedKey) cell.classList.add('selected');
+      cell.dataset.key = key;
+
+      var num = document.createElement('div');
+      num.className = 'num';
+      num.textContent = d;
+      cell.appendChild(num);
+
+      if (data.statuses.length) {
+        var badge = document.createElement('div');
+        badge.className = 'badge';
+        var LETTER = { trabajo: 'T', franco: 'F', adicional: 'A', terapia: 'R', tardemateo: 'M' };
+        data.statuses.forEach(function (st) {
+          var sp = document.createElement('span');
+          sp.className = st;
+          sp.textContent = LETTER[st];
+          badge.appendChild(sp);
+        });
+        cell.appendChild(badge);
+
+        var editIcon = document.createElement('div');
+        editIcon.className = 'edit-icon';
+        editIcon.textContent = '✎';
+        cell.appendChild(editIcon);
+      }
+
+      var marks = document.createElement('div');
+      marks.className = 'marks';
+      data.blocks.forEach(function (b) {
+        var cls = (b.type === 'm' || b.type === 't' || b.type === 'n') ? b.type : 'c';
+        var i2 = document.createElement('i');
+        i2.className = cls;
+        marks.appendChild(i2);
+      });
+      cell.appendChild(marks);
+
+      if (dayHrs > 0) {
+        var hrsEl = document.createElement('div');
+        hrsEl.className = 'hrs';
+        hrsEl.textContent = fmtHrs(dayHrs);
+        cell.appendChild(hrsEl);
+      }
+
+      cell.addEventListener('click', function () {
+        openPanel(this.dataset.key);
+      });
+
+      grid.appendChild(cell);
+    }
+
+    var totalHrsLabel = (Math.round(monthHrs * 10) / 10);
+    totalHrsLabel = (totalHrsLabel % 1 === 0 ? totalHrsLabel.toFixed(0) : totalHrsLabel.toFixed(1)).replace('.', ',');
+    summaryEl.innerHTML = statusCounts.trabajo + ' días de trabajo · ' + statusCounts.franco + ' francos · ' + statusCounts.adicional + ' adicionales' +
+      (statusCounts.terapia || statusCounts.tardemateo ? '<br>' + statusCounts.terapia + ' terapias con Mateo · ' + statusCounts.tardemateo + ' tardes con Mateo' : '') +
+      '<br>' + typeCounts.m + ' mañana · ' + typeCounts.t + ' tarde · ' + typeCounts.n + ' noche' +
+      (typeCounts.c ? ' · ' + typeCounts.c + ' personalizados' : '') +
+      '<br>Total trabajado: ' + totalHrsLabel + ' h';
+  }
+
+  function renderBlocks(data) {
+    blocksList.innerHTML = '';
+    document.querySelectorAll('.status-btn').forEach(function (btn) {
+      btn.dataset.active = (data.statuses.indexOf(btn.dataset.status) !== -1) ? 'true' : 'false';
+    });
+    var isFranco = data.statuses.length === 1 && data.statuses[0] === 'franco';
+    shiftRow.style.display = isFranco ? 'none' : 'flex';
+    addCustomBtn.style.display = isFranco ? 'none' : 'block';
+    blocksList.style.display = isFranco ? 'none' : 'flex';
+
+    document.querySelectorAll('.shift-btn').forEach(function (btn) {
+      var present = data.blocks.some(function (b) { return b.type === btn.dataset.shift; });
+      btn.dataset.active = present ? 'true' : 'false';
+    });
+
+    data.blocks.forEach(function (b, idx) {
+      var cls = (b.type === 'm' || b.type === 't' || b.type === 'n') ? b.type : 'c';
+      var row = document.createElement('div');
+      row.className = 'block-row';
+
+      var swatch = document.createElement('span');
+      swatch.className = 'swatch ' + cls;
+      row.appendChild(swatch);
+
+      var labelEl;
+      if (cls === 'c') {
+        labelEl = document.createElement('input');
+        labelEl.type = 'text';
+        labelEl.className = 'block-label';
+        labelEl.placeholder = 'Nombre del turno';
+        labelEl.value = b.label || '';
+        labelEl.addEventListener('input', function () {
+          updateBlock(idx, { label: this.value });
+        });
+      } else {
+        labelEl = document.createElement('span');
+        labelEl.className = 'block-label';
+        labelEl.textContent = PRESET_LABEL[b.type];
+      }
+      row.appendChild(labelEl);
+
+      var startPick = buildTimePick(b.start || '', function (v) {
+        updateBlock(idx, { start: v });
+      });
+      row.appendChild(startPick);
+
+      var sep = document.createElement('span');
+      sep.className = 'sep';
+      sep.textContent = '–';
+      row.appendChild(sep);
+
+      var endPick = buildTimePick(b.end || '', function (v) {
+        updateBlock(idx, { end: v });
+      });
+      row.appendChild(endPick);
+
+      var rm = document.createElement('button');
+      rm.className = 'rm-btn';
+      rm.textContent = '×';
+      rm.addEventListener('click', function () { removeBlock(idx); });
+      row.appendChild(rm);
+
+      blocksList.appendChild(row);
+    });
+  }
+
+  function openPanel(key) {
+    selectedKey = key;
+    var parts = key.split('-').map(Number);
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+    panelDate.textContent = DIAS_LARGOS[d.getDay()] + ', ' + parts[2] + ' de ' + MESES[parts[1] - 1];
+
+    var data = dayData(key);
+    renderBlocks(data);
+    noteField.value = data.note || '';
+    statusText.textContent = '';
+    statusText.classList.remove('saved');
+
+    panel.classList.add('open');
+    render();
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function closePanel() {
+    selectedKey = null;
+    panel.classList.remove('open');
+    render();
+  }
+
+  function commitDay(data) {
+    var isEmpty = data.blocks.length === 0 && !data.note && data.statuses.length === 0;
+    if (isEmpty) {
+      delete state.days[selectedKey];
+    } else {
+      state.days[selectedKey] = data;
+    }
+    render();
+    scheduleSave();
+  }
+
+  document.querySelectorAll('.status-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!selectedKey) return;
+      var status = this.dataset.status;
+      var data = dayData(selectedKey);
+      var i = data.statuses.indexOf(status);
+      if (i === -1) data.statuses.push(status); else data.statuses.splice(i, 1);
+      renderBlocks(data);
+      commitDay(data);
+    });
+  });
+
+  function updateBlock(idx, patch) {
+    if (!selectedKey) return;
+    var data = dayData(selectedKey);
+    data.blocks[idx] = Object.assign({}, data.blocks[idx], patch);
+    commitDay(data);
+  }
+
+  function removeBlock(idx) {
+    if (!selectedKey) return;
+    var data = dayData(selectedKey);
+    data.blocks.splice(idx, 1);
+    renderBlocks(data);
+    commitDay(data);
+  }
+
+  document.querySelectorAll('.shift-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!selectedKey) return;
+      var type = this.dataset.shift;
+      var data = dayData(selectedKey);
+      var idx = data.blocks.findIndex(function (b) { return b.type === type; });
+      if (idx === -1) {
+        var def = PRESET_DEFAULT_TIME[type];
+        data.blocks.push({ type: type, start: def[0], end: def[1] });
+      } else {
+        data.blocks.splice(idx, 1);
+      }
+      renderBlocks(data);
+      commitDay(data);
+    });
+  });
+
+  document.getElementById('addCustomBtn').addEventListener('click', function () {
+    if (!selectedKey) return;
+    var data = dayData(selectedKey);
+    data.blocks.push({ type: 'custom', label: '', start: '09:00', end: '17:00' });
+    renderBlocks(data);
+    commitDay(data);
+  });
+
+  var noteDebounce;
+  noteField.addEventListener('input', function () {
+    var val = this.value;
+    clearTimeout(noteDebounce);
+    noteDebounce = setTimeout(function () {
+      if (!selectedKey) return;
+      var data = dayData(selectedKey);
+      data.note = val;
+      commitDay(data);
+    }, 400);
+  });
+
+  document.getElementById('closeBtn').addEventListener('click', closePanel);
+  document.getElementById('prevBtn').addEventListener('click', function () {
+    viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    render();
+  });
+  document.getElementById('nextBtn').addEventListener('click', function () {
+    viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    render();
+  });
+  document.getElementById('todayBtn').addEventListener('click', function () {
+    viewYear = now.getFullYear(); viewMonth = now.getMonth();
+    render();
+  });
+
+  // --- respaldo: exportar / importar ---
+  var ioStatus = document.getElementById('ioStatus');
+  function flashIoStatus(msg, ok) {
+    ioStatus.textContent = msg;
+    ioStatus.style.color = ok ? 'var(--tarde)' : 'var(--ink-soft)';
+    setTimeout(function () { ioStatus.textContent = ''; }, 3000);
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', function () {
+    try {
+      var json = JSON.stringify(state, null, 2);
+      var blob = new Blob([json], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var now2 = new Date();
+      a.href = url;
+      a.download = 'bitacora-turnos-' + now2.getFullYear() + '-' + pad(now2.getMonth() + 1) + '-' + pad(now2.getDate()) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      flashIoStatus('Respaldo descargado ✓', true);
+    } catch (e) {
+      flashIoStatus('No se pudo exportar', false);
+    }
+  });
+
+  document.getElementById('importBtn').addEventListener('click', function () {
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var incoming = JSON.parse(reader.result);
+        if (!incoming || typeof incoming !== 'object' || !incoming.days) {
+          throw new Error('formato inválido');
+        }
+        var ok = confirm('Esto va a reemplazar todos los datos actuales por los del archivo importado. ¿Continuar?');
+        if (!ok) return;
+        state = incoming;
+        closePanel();
+        render();
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          flashIoStatus('Datos restaurados ✓', true);
+        } catch (e2) {
+          flashIoStatus('Restaurado, pero no se pudo guardar', false);
+        }
+      } catch (err) {
+        flashIoStatus('Archivo inválido', false);
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // --- respaldo automático silencioso: guarda copias extra en el propio dispositivo ---
+  var BACKUP_KEY = 'bitacora-turnos-backups-v1';
+  var MAX_BACKUPS = 25;
+  var MIN_BACKUP_GAP_MS = 2 * 60 * 1000; // no amontonar respaldos si se guarda seguido
+
+  function loadBackups() {
+    try {
+      var raw = localStorage.getItem(BACKUP_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function maybePushBackup() {
+    try {
+      var backups = loadBackups();
+      var nowTs = Date.now();
+      var last = backups[backups.length - 1];
+      if (!last || (nowTs - last.ts) > MIN_BACKUP_GAP_MS) {
+        backups.push({ ts: nowTs, data: JSON.parse(JSON.stringify(state)) });
+        if (backups.length > MAX_BACKUPS) backups = backups.slice(backups.length - MAX_BACKUPS);
+        localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
+      }
+    } catch (e) { /* si falla el respaldo, no interrumpe el guardado normal */ }
+  }
+
+  function formatBackupLabel(ts) {
+    var d = new Date(ts);
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function openBackupsPanel() {
+    var list = document.getElementById('backupsList');
+    var backups = loadBackups();
+    list.innerHTML = '';
+    if (!backups.length) {
+      list.innerHTML = '<div style="font-size:13px;color:var(--ink-soft);">Todavía no hay respaldos guardados.</div>';
+    } else {
+      backups.slice().reverse().forEach(function (b) {
+        var label = formatBackupLabel(b.ts);
+        var row = document.createElement('div');
+        row.className = 'backup-item';
+        var span = document.createElement('span');
+        span.textContent = label;
+        row.appendChild(span);
+        var btn = document.createElement('button');
+        btn.textContent = 'restaurar';
+        btn.addEventListener('click', function () {
+          var ok = confirm('Esto va a reemplazar los datos actuales por el respaldo del ' + label + '. ¿Continuar?');
+          if (!ok) return;
+          state = JSON.parse(JSON.stringify(b.data));
+          if (!state.days) state.days = {};
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+          closePanel();
+          render();
+          document.getElementById('backupsPanel').classList.remove('open');
+        });
+        row.appendChild(btn);
+        list.appendChild(row);
+      });
+    }
+    document.getElementById('backupsPanel').classList.add('open');
+    document.getElementById('backupsPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('backupsBtn').addEventListener('click', openBackupsPanel);
+  document.getElementById('closeBackupsBtn').addEventListener('click', function () {
+    document.getElementById('backupsPanel').classList.remove('open');
+  });
+
+  // --- persistence: 100% local, en el propio dispositivo (localStorage) ---
+  var saveTimer;
+  function scheduleSave() {
+    statusText.textContent = 'Guardando…';
+    statusText.classList.remove('saved');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try {
+        maybePushBackup();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        statusText.textContent = 'Guardado ✓';
+        statusText.classList.add('saved');
+      } catch (e) {
+        statusText.textContent = 'No se pudo guardar en este dispositivo';
+      }
+    }, 400);
+  }
+
+  render();
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+</script>
+
+</body></html>
