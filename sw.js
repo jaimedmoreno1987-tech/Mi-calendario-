@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bitacora-turnos-v2';
+const CACHE_NAME = 'bitacora-turnos-v3';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
@@ -16,9 +16,14 @@ self.addEventListener('activate', function (e) {
 });
 
 self.addEventListener('fetch', function (e) {
+  if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then(function (cached) {
-      return cached || fetch(e.request).catch(function () { return cached; });
+    fetch(e.request).then(function (res) {
+      var copy = res.clone();
+      caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, copy); });
+      return res;
+    }).catch(function () {
+      return caches.match(e.request);
     })
   );
 });
